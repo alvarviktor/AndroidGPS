@@ -1,3 +1,22 @@
+/*---------------------------------------------------------------------------------------
+--	Source File:	MainActivity.java -
+--
+--	Classes:
+--
+--	Methods:
+--
+--	Date:			March 7, 2019
+--
+--	Revisions:		(Date and Description)
+--
+--	Designer:		Viktor Alvar
+--
+--	Programmer:		Viktor Alvar
+--
+--	Notes:
+--
+---------------------------------------------------------------------------------------*/
+
 package c4985.androidgps;
 
 import android.support.v7.app.AppCompatActivity;
