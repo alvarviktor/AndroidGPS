@@ -7,6 +7,8 @@
     <string name="nameText">Name:</string>
     <string name="latText">Latitude:</string>
     <string name="lngText">Longitude:</string>
+    <string name="lngPlaceholder">###.##</string>
+    <string name="latPlaceholder">##.##</string>
 
     <!-- Hint Strings -->
     <string name="nameHint">My Android Device</string>
