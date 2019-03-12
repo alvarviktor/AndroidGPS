@@ -40,11 +40,12 @@ import java.io.*;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private Connector myConnector;
+    private MyLocationListener locationListener;
 
     @SuppressLint("MissingPermission")
     public void initLocationHandler() {
         final LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        final LocationListener locationListener = new MyLocationListener(this);
+        locationListener = new MyLocationListener(this);
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 500, locationListener);
     }
 
@@ -94,7 +95,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.connectButton:
                 String ipAddress = ((EditText) findViewById(R.id.ipEditText)).getText().toString();
                 int port = Integer.parseInt(((EditText) findViewById(R.id.portEditText)).getText().toString());
-                myConnector = new Connector(this, ipAddress, port);
+                myConnector = new Connector(locationListener, ipAddress, port);
+                locationListener.setConnector(myConnector);
                 break;
             case R.id.updateButton:
                 break;
@@ -103,6 +105,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (myConnector != null) {
                     myConnector.disconnect();
                 }
+                break;
+            default:
+                //do nothing
                 break;
         }
     }

@@ -3,37 +3,47 @@ package c4985.androidgps;
 import android.content.Context;
 import android.os.AsyncTask;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.Socket;
 
 public class Connector {
 
-    private Context caller;
+    private MyLocationListener locationListener;
 
     private String ipAddress;
     private int port;
     private Socket socket;
-    private boolean canSend = false;
 
-    public Connector(Context context, String ipAddress, int port) {
+    public Connector(MyLocationListener locationListener, String ipAddress, int port) {
         this.ipAddress = ipAddress;
         this.port = port;
-        this.caller = context;
+        this.locationListener = locationListener;
+    }
 
+    public void connect() {
         new ConnectAdapter().execute();
     }
 
     public void disconnect() {
         try {
             socket.close();
+            if (locationListener != null) {
+                locationListener.setInactive();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public void sendData() {
-        if (canSend) {
-
+    public void sendData(String data) {
+        try {
+            OutputStream outToServer = socket.getOutputStream();
+            DataOutputStream out = new DataOutputStream(outToServer);
+            out.writeUTF(data);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -51,7 +61,9 @@ public class Connector {
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            canSend = true;
+            if (locationListener != null) {
+                locationListener.setActive();
+            }
         }
     }
 }
