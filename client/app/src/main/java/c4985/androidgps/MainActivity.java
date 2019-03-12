@@ -33,6 +33,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 
+import java.net.*;
+import java.io.*;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     @SuppressLint("MissingPermission")

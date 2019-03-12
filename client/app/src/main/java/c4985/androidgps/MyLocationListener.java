@@ -3,7 +3,6 @@ package c4985.androidgps;
 import android.app.Activity;
 import android.location.Location;
 import android.location.LocationListener;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.TextView;
 
@@ -11,7 +10,7 @@ import java.text.DecimalFormat;
 
 public class MyLocationListener implements LocationListener {
 
-    public Activity activity;
+    private Activity activity;
 
     public MyLocationListener(Activity activity) {
         this.activity = activity;
@@ -23,6 +22,8 @@ public class MyLocationListener implements LocationListener {
         TextView lngTextView = this.activity.findViewById(R.id.lngValue);
         latTextView.setText(String.valueOf(new DecimalFormat("###0.00").format(location.getLatitude())));
         lngTextView.setText(String.valueOf(new DecimalFormat("###0.00").format(location.getLongitude())));
+
+
     }
 
     @Override
