@@ -3,10 +3,13 @@ package c4985.androidgps;
 import android.app.Activity;
 import android.location.Location;
 import android.location.LocationListener;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.widget.TextView;
 
 import java.text.DecimalFormat;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class MyLocationListener implements LocationListener {
 
@@ -15,6 +18,9 @@ public class MyLocationListener implements LocationListener {
     private Connector destination;
 
     private boolean isConnected;
+
+    public static String locationMsg;
+    public static boolean canSend;
 
     public MyLocationListener(Activity activity) {
         this.activity = activity;
@@ -30,10 +36,15 @@ public class MyLocationListener implements LocationListener {
         latTextView.setText(String.valueOf(new DecimalFormat("###0.00").format(latitude)));
         lngTextView.setText(String.valueOf(new DecimalFormat("###0.00").format(longitude)));
 
-        if (isConnected) {
-            String message = Double.toString(latitude) + "&" + Double.toString(longitude);
-            destination.sendData(message);
-        }
+        locationMsg = Double.toString(latitude) + "&" + Double.toString(longitude);
+//        if (isConnected) {
+//            destination.unlock();
+//        }
+        canSend = true;
+//  if (isConnected) {
+//            String message = Double.toString(latitude) + "&" + Double.toString(longitude);
+//            destination.sendData(message);
+//        }
     }
 
     @Override
@@ -62,5 +73,10 @@ public class MyLocationListener implements LocationListener {
 
     public void setInactive() {
         isConnected = false;
+    }
+
+
+    public String getMessage() {
+        return locationMsg;
     }
 }

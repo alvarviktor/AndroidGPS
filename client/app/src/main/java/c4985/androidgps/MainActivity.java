@@ -97,6 +97,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 int port = Integer.parseInt(((EditText) findViewById(R.id.portEditText)).getText().toString());
                 myConnector = new Connector(locationListener, ipAddress, port);
                 locationListener.setConnector(myConnector);
+                locationListener.setActive();
                 break;
             case R.id.updateButton:
                 break;

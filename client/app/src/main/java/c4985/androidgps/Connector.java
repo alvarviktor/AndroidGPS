@@ -7,6 +7,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Connector {
 
@@ -15,23 +18,27 @@ public class Connector {
     private String ipAddress;
     private int port;
     private Socket socket;
+    private boolean isConnected;
+    private Lock lock;
 
     public Connector(MyLocationListener locationListener, String ipAddress, int port) {
         this.ipAddress = ipAddress;
         this.port = port;
         this.locationListener = locationListener;
+        this.lock = new ReentrantLock();
     }
 
     public void connect() {
-        new ConnectAdapter().execute();
+        new ConnectAdapter().start();
     }
 
     public void disconnect() {
         try {
             socket.close();
-            if (locationListener != null) {
-                locationListener.setInactive();
-            }
+            isConnected = false;
+//            if (locationListener != null) {
+//                locationListener.setInactive();
+//            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -47,22 +54,34 @@ public class Connector {
         }
     }
 
-    private class ConnectAdapter extends AsyncTask<Void, Void, Void> {
+    public void unlock() {
+        if (isConnected) {
+            lock.unlock();
+        }
+    }
+
+    private class ConnectAdapter extends Thread {
 
         @Override
-        protected Void doInBackground(Void... params) {
+        public void run() {
             try {
                 socket = new Socket(ipAddress, port);
+                isConnected = true;
+                while (isConnected) {
+//                    try {
+//                        if (lock.tryLock(10, TimeUnit.SECONDS)) {
+//                            sendData(locationListener.locationMsg);
+//                        }
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+                    if (locationListener.canSend) {
+                        locationListener.canSend = false;
+                        sendData(locationListener.locationMsg);
+                    }
+                }
             } catch (IOException e) {
                 e.printStackTrace();
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            if (locationListener != null) {
-                locationListener.setActive();
             }
         }
     }
