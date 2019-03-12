@@ -31,12 +31,15 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import java.net.*;
 import java.io.*;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+
+    private Connector myConnector;
 
     @SuppressLint("MissingPermission")
     public void initLocationHandler() {
@@ -89,12 +92,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case R.id.connectButton:
+                String ipAddress = ((EditText) findViewById(R.id.ipEditText)).getText().toString();
+                int port = Integer.parseInt(((EditText) findViewById(R.id.portEditText)).getText().toString());
+                myConnector = new Connector(this, ipAddress, port);
                 break;
-
             case R.id.updateButton:
                 break;
 
             case R.id.disconnectButton:
+                if (myConnector != null) {
+                    myConnector.disconnect();
+                }
                 break;
         }
     }

@@ -5,12 +5,15 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.os.Bundle;
 import android.widget.TextView;
+import java.net.Socket;
 
 import java.text.DecimalFormat;
 
 public class MyLocationListener implements LocationListener {
 
     private Activity activity;
+
+    private Socket destination;
 
     public MyLocationListener(Activity activity) {
         this.activity = activity;
@@ -20,8 +23,12 @@ public class MyLocationListener implements LocationListener {
     public void onLocationChanged(Location location) {
         TextView latTextView = this.activity.findViewById(R.id.latValue);
         TextView lngTextView = this.activity.findViewById(R.id.lngValue);
-        latTextView.setText(String.valueOf(new DecimalFormat("###0.00").format(location.getLatitude())));
-        lngTextView.setText(String.valueOf(new DecimalFormat("###0.00").format(location.getLongitude())));
+
+        double latitude = location.getLatitude();
+        double longitude = location.getLongitude();
+        latTextView.setText(String.valueOf(new DecimalFormat("###0.00").format(latitude)));
+        lngTextView.setText(String.valueOf(new DecimalFormat("###0.00").format(longitude)));
+
 
 
     }
@@ -40,4 +47,9 @@ public class MyLocationListener implements LocationListener {
     public void onProviderDisabled(String provider) {
 
     }
+
+    public void setSocket(Socket destination) {
+        this.destination = destination;
+    }
+
 }
