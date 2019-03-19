@@ -10,7 +10,7 @@ var server = net.createServer(function (socket) {
   socket.write('Echo server\r\n');
 
   socket.on('data', function (data) {
-    let received_coordinate = JSON.parse(data);
+    let received_coordinate = JSON.parse(data.toString());
     console.log('Received: ' + received_coordinate.lat + " " + received_coordinate.lng);
 
     client.connect(function (err) {
