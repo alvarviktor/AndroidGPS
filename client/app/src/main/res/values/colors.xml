@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Default Colors -->
     <color name="colorPrimary">#008577</color>
     <color name="colorPrimaryDark">#00574b</color>
     <color name="colorAccent">#D81B60</color>
+
+    <!-- Status Message Colors -->
+    <color name="statusGreen">#32CD32</color>
+    <color name="statusRed">#FF0000</color>
 </resources>

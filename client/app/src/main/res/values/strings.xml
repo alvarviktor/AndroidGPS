@@ -7,13 +7,19 @@
     <string name="nameText">Name:</string>
     <string name="latText">Latitude:</string>
     <string name="lngText">Longitude:</string>
-    <string name="lngPlaceholder">###.##</string>
-    <string name="latPlaceholder">##.##</string>
+    <string name="lngPlaceholder">###.####</string>
+    <string name="latPlaceholder">##.####</string>
+    <string name="statusText">Connection Status:</string>
+    <string name="gpsText">GPS Status:</string>
+    <string name="lastUpdateText">Last Update:</string>
 
     <!-- Hint Strings -->
     <string name="nameHint">My Android Device</string>
     <string name="portHint">8000</string>
-    <string name="ipHint">localhost</string>
+    <string name="ipHint">127.0.0.1</string>
+
+    <!-- Default Input Strings -->
+
 
     <!-- Button Labels -->
     <string name="getLocationText">Get Location</string>
@@ -21,4 +27,12 @@
     <string name="updateText">Update</string>
     <string name="disconnectText">Disconnect</string>
 
+    <!-- Status Messages -->
+    <string name="statusValueDisconnected">Disconnected</string>
+    <string name="statusValueConnected">Connected</string>
+    <string name="gpsValueStopped">Stopped</string>
+    <string name="gpsValueRunning">Running</string>
+    <string name="lastUpdateValue">No Recent Update</string>
+    <string name="defaultAddress">18.217.152.46</string>
+    <string name="defaultPort">3000</string>
 </resources>
