@@ -17,9 +17,15 @@ var server = net.createServer(function (socket) {
       const db = client.db("comp4985");
       const collection_coordinates = db.collection('coordinates');
 
+      // Example JSON Object Received From Android Client
+      // { lat: 42.213, lng: 123.456, name: "My Android Device", ip: "192.168.0.5", time: "March 19, 2019 5:49PM" }
+
       collection_coordinates.insertOne({
         lat: received_coordinate.lat,
         lng: received_coordinate.lng
+        // name: received_coordinate.name
+        // ip: received_coordinate.ip
+        // time: received_coordinate.time
       })
     });
   });
