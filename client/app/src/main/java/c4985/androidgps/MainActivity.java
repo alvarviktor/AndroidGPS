@@ -1,9 +1,27 @@
 /*---------------------------------------------------------------------------------------
---	Source File:	MainActivity.java -
+--	Source File:	MainActivity.java - Starting point of the android application.
 --
---	Classes:
+--	Classes:        MainActivity        - public class
+--                  MyLocationListener  - private class
+--                  ConnectorTask       - private class
 --
 --	Methods:
+--                  onCreate            (MainActivity Class)
+--                  onLocationChanged   (MyLocationListener Class)
+--                  onStatusChanged     (MyLocationListener Class)
+--                  onProviderEnabled   (MyLocationListener Class)
+--                  onProviderDisabled  (MyLocationListener Class)
+--                  run                 (ConnectorTask Class)
+--
+--                  void getLocation(View view)
+--                  void connectServer(View view)
+--                  void disconnectServer(View view)
+--                  boolean validateEditText()
+--                  void updateUI(Location location)
+--                  void setStatus(int statusViewId, int statusMessageId, int statusColorId)
+--                  String getDeviceIpAddress()
+--                  String getCurrentTime()
+--                  boolean initLocationServices()
 --
 --	Date:			March 7, 2019
 --
@@ -14,7 +32,9 @@
 --	Programmer:		Simon Wu, Viktor Alvar
 --
 --	Notes:
---
+--  Starting point of the android application. Renders the app layout and contains
+--  inner classes that enables gps and socket functionality. The user connects via a
+--  tcp socket and continuously sends the current location.
 ---------------------------------------------------------------------------------------*/
 
 package c4985.androidgps;
@@ -49,8 +69,8 @@ import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_FINE_LOCATION = 1;
-    private static final int REFRESH_TIME = 5000;
-    private static final int REFRESH_DISTANCE = 50;
+    private static final int REFRESH_TIME = 5000;    // 5 seconds
+    private static final int REFRESH_DISTANCE = 50;  // 50 meters
 
     private LocationListener locationListener;
     private LocationManager locationManager;
@@ -67,22 +87,24 @@ public class MainActivity extends AppCompatActivity {
     private Location myLocation;
 
     /*---------------------------------------------------------------------------------------
-    --	FUNCTION:
+    --	FUNCTION:       onCreate
     --
-    --	DATE:
+    --	DATE:           March 7, 2019
     --
     --	REVISIONS:	    (Date and Description)
     --
     --	DESIGNER:		Simon Wu, Viktor Alvar
     --
-    --	PROGRAMMER:
+    --	PROGRAMMER:     Simon Wu, Viktor Alvar
     --
-    --	INTERFACE:
+    --	INTERFACE:      onCreate(Bundle savedInstanceState)
+    --                      Bundle savedInstanceState: Previous state data
     --
     --	RETURNS:		void.
     --
     --	NOTES:
-    --
+    --  Creates and renders the android application activity. This function is called when
+    --  the android application is opened.
     ---------------------------------------------------------------------------------------*/
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,25 +113,30 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /*---------------------------------------------------------------------------------------
-    --	FUNCTION:
+    --	FUNCTION:       getLocation
     --
-    --	DATE:
+    --	DATE:           March 13, 2019
     --
     --	REVISIONS:	    (Date and Description)
     --
     --	DESIGNER:		Simon Wu, Viktor Alvar
     --
-    --	PROGRAMMER:
+    --	PROGRAMMER:     Viktor Alvar
     --
-    --	INTERFACE:
+    --	INTERFACE:      getLocation(View view)
+    --                      View view: Button
     --
     --	RETURNS:		void.
     --
     --	NOTES:
-    --
+    --  Gets the location. This function is called when the get location button is clicked.
+    --  Initializes location services and updates ui elements on success. If the function
+    --  is called for the first time the user may need to click the button twice to enable
+    --  the location services.
     ---------------------------------------------------------------------------------------*/
     public void getLocation(View view) {
         if (initLocationServices()) {
+            // Update ui elements
             view.setEnabled(false);
             findViewById(R.id.disconnectButton).setEnabled(true);
             setStatus(R.id.gpsValue, R.string.gpsValueRunning, R.color.statusGreen);
@@ -117,29 +144,35 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /*---------------------------------------------------------------------------------------
-    --	FUNCTION:
+    --	FUNCTION:       connectServer
     --
-    --	DATE:
+    --	DATE:           March 13, 2019
     --
     --	REVISIONS:	    (Date and Description)
     --
     --	DESIGNER:		Simon Wu, Viktor Alvar
     --
-    --	PROGRAMMER:
+    --	PROGRAMMER:     Simon Wu
     --
-    --	INTERFACE:
+    --	INTERFACE:      connectServer(View view)
+    --                      View view: Button
     --
     --	RETURNS:		void.
     --
     --	NOTES:
-    --
+    --  Connects to the server. This function is called when the connect button is clicked.
+    --  Ensures that the text fields are valid before connecting. If a connection is
+    --  established a new thread is created to process the send operation.
     ---------------------------------------------------------------------------------------*/
     public void connectServer(View view) {
         if (validateEditText()) {
             if (initLocationServices()) {
+                // Update ui elements
                 findViewById(R.id.getLocationButton).setEnabled(false);
                 findViewById(R.id.disconnectButton).setEnabled(true);
                 setStatus(R.id.gpsValue, R.string.gpsValueRunning, R.color.statusGreen);
+
+                // Create send thread
                 connectorTask = new ConnectorTask();
                 connectorTask.start();
                 Toast.makeText(this, "Attempting Connection", Toast.LENGTH_SHORT).show();
@@ -150,29 +183,34 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /*---------------------------------------------------------------------------------------
-    --	FUNCTION:
+    --	FUNCTION:       disconnectServer
     --
-    --	DATE:
+    --	DATE:           March 13, 2019
     --
     --	REVISIONS:	    (Date and Description)
     --
     --	DESIGNER:		Simon Wu, Viktor Alvar
     --
-    --	PROGRAMMER:
+    --	PROGRAMMER:     Simon Wu
     --
-    --	INTERFACE:
+    --	INTERFACE:      disconnectServer(View view)
+    --                      View view: Button
     --
     --	RETURNS:		void.
     --
     --	NOTES:
-    --
+    --  Disconnects the connection. This function is called when the disconnect button is
+    --  clicked. Signals the send thread to exit and close the socket. Removes the location
+    --  updates and deallocate the listener object.
     ---------------------------------------------------------------------------------------*/
     public void disconnectServer(View view) {
         if (isConnected) {
+            // Signal to exit thread
             isConnected = false;
             connectorTask = null;
         }
 
+        // Remove location updates
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             if (locationManager != null && locationListener != null) {
                 locationManager.removeUpdates(locationListener);
@@ -180,6 +218,7 @@ public class MainActivity extends AppCompatActivity {
             locationListener = null;
         }
 
+        // Update ui elements
         view.setEnabled(false);
         findViewById(R.id.connectButton).setEnabled(true);
         findViewById(R.id.getLocationButton).setEnabled(true);
@@ -188,22 +227,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /*---------------------------------------------------------------------------------------
-    --	FUNCTION:
+    --	FUNCTION:       validateEditText
     --
-    --	DATE:
+    --	DATE:           March 13, 2019
     --
     --	REVISIONS:	    (Date and Description)
     --
     --	DESIGNER:		Simon Wu, Viktor Alvar
     --
-    --	PROGRAMMER:
+    --	PROGRAMMER:     Viktor Alvar
     --
-    --	INTERFACE:
+    --	INTERFACE:      validateEditText()
     --
-    --	RETURNS:		void.
+    --	RETURNS:		boolean.
     --
     --	NOTES:
-    --
+    --  Validates the text fields. This function is called when the user attempts to
+    --  connect to a server. Returns true if the text fields are not empty, false otherwise.
     ---------------------------------------------------------------------------------------*/
     public boolean validateEditText() {
         hostName = ((EditText) findViewById(R.id.ipEditText)).getText().toString();
@@ -213,50 +253,58 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /*---------------------------------------------------------------------------------------
-    --	FUNCTION:
+    --	FUNCTION:       updateUI
     --
-    --	DATE:
+    --	DATE:           March 13, 2019
     --
     --	REVISIONS:	    (Date and Description)
     --
     --	DESIGNER:		Simon Wu, Viktor Alvar
     --
-    --	PROGRAMMER:
+    --	PROGRAMMER:     Viktor Alvar
     --
-    --	INTERFACE:
+    --	INTERFACE:      updateUI(Location location)
+    --                      Location location: Location object
     --
     --	RETURNS:		void.
     --
     --	NOTES:
-    --
+    --  Updates the user interface with the most recent location. This function is called
+    --  when the location listener generates a new location.
     ---------------------------------------------------------------------------------------*/
     public void updateUI(Location location) {
+        // Get location info
         TextView latTextView = findViewById(R.id.latValue);
         TextView lngTextView = findViewById(R.id.lngValue);
         double latitude = location.getLatitude();
         double longitude = location.getLongitude();
 
+        // Display location
         latTextView.setText(String.valueOf(new DecimalFormat("###0.0000").format(latitude)));
         lngTextView.setText(String.valueOf(new DecimalFormat("###0.0000").format(longitude)));
     }
 
     /*---------------------------------------------------------------------------------------
-    --	FUNCTION:
+    --	FUNCTION:       setStatus
     --
-    --	DATE:
+    --	DATE:           March 13, 2019
     --
     --	REVISIONS:	    (Date and Description)
     --
     --	DESIGNER:		Simon Wu, Viktor Alvar
     --
-    --	PROGRAMMER:
+    --	PROGRAMMER:     Viktor Alvar
     --
-    --	INTERFACE:
+    --	INTERFACE:      setStatus(int statusViewId, int statusMessageId, int statusColorId)
+    --                      int statusViewId: Text view
+    --                      int statusMessageId: String resource
+    --                      int statusColorId: Color resource
     --
     --	RETURNS:		void.
     --
     --	NOTES:
-    --
+    --  Sets the status of a given text view. This function is called when the gps or
+    --  socket connection is changed to show the user the current status.
     ---------------------------------------------------------------------------------------*/
     public void setStatus(int statusViewId, int statusMessageId, int statusColorId) {
         TextView statusTextView = findViewById(statusViewId);
@@ -265,22 +313,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /*---------------------------------------------------------------------------------------
-    --	FUNCTION:
+    --	FUNCTION:       getDeviceIpAddress
     --
-    --	DATE:
+    --	DATE:           March 13, 2019
     --
     --	REVISIONS:	    (Date and Description)
     --
     --	DESIGNER:		Simon Wu, Viktor Alvar
     --
-    --	PROGRAMMER:
+    --	PROGRAMMER:     Viktor Alvar
     --
-    --	INTERFACE:
+    --	INTERFACE:      getDeviceIpAddress()
     --
-    --	RETURNS:		void.
+    --	RETURNS:		String.
     --
     --	NOTES:
-    --
+    --  Gets the device's ip address. This function is called when the socket send operation
+    --  is being executed. Returns the ip address as a String.
     ---------------------------------------------------------------------------------------*/
     public String getDeviceIpAddress() {
         WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService (WIFI_SERVICE);
@@ -290,44 +339,47 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /*---------------------------------------------------------------------------------------
-    --	FUNCTION:
+    --	FUNCTION:       getCurrentTime
     --
-    --	DATE:
+    --	DATE:           March 13, 2019
     --
     --	REVISIONS:	    (Date and Description)
     --
     --	DESIGNER:		Simon Wu, Viktor Alvar
     --
-    --	PROGRAMMER:
+    --	PROGRAMMER:     Viktor Alvar
     --
-    --	INTERFACE:
+    --	INTERFACE:      getCurrentTime()
     --
-    --	RETURNS:		void.
+    --	RETURNS:		String.
     --
     --	NOTES:
-    --
+    --  Gets the current time of the android device. This function is called when the socket
+    --  send operation is being executed. Return the current time as a String.
     ---------------------------------------------------------------------------------------*/
     public String getCurrentTime() {
         return DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
     }
 
     /*---------------------------------------------------------------------------------------
-    --	FUNCTION:
+    --	FUNCTION:       initLocationServices
     --
-    --	DATE:
+    --	DATE:           March 13, 2019
     --
     --	REVISIONS:	    (Date and Description)
     --
     --	DESIGNER:		Simon Wu, Viktor Alvar
     --
-    --	PROGRAMMER:
+    --	PROGRAMMER:     Viktor Alvar
     --
-    --	INTERFACE:
+    --	INTERFACE:      initLocationServices()
     --
-    --	RETURNS:		void.
+    --	RETURNS:		boolean.
     --
     --	NOTES:
-    --
+    --  Initializes location service functionality on the android device. This function
+    --  is called when the user wishes to get location or connect. Requests for location
+    --  permissions and returns true if permission is granted, false otherwise.
     ---------------------------------------------------------------------------------------*/
     public boolean initLocationServices() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
@@ -341,25 +393,28 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    // GPS Inner Class
     private class MyLocationListener implements LocationListener {
 
         /*---------------------------------------------------------------------------------------
-        --	FUNCTION:
+        --	FUNCTION:       onLocationChanged
         --
-        --	DATE:
+        --	DATE:           March 13, 2019
         --
         --	REVISIONS:	    (Date and Description)
         --
         --	DESIGNER:		Simon Wu, Viktor Alvar
         --
-        --	PROGRAMMER:
+        --	PROGRAMMER:     Simon Wu, Viktor Alvar
         --
-        --	INTERFACE:
+        --	INTERFACE:      onLocationChanged(Location location)
+        --                      Location location: Location object
         --
         --	RETURNS:		void.
         --
         --	NOTES:
-        --
+        --  Callback function when the location listener generates a new location. The new
+        --  location is displayed and sent to the server.
         ---------------------------------------------------------------------------------------*/
         @Override
         public void onLocationChanged(Location location) {
@@ -381,31 +436,37 @@ public class MainActivity extends AppCompatActivity {
         public void onProviderDisabled(String provider) { }
     }
 
+    // Socket Send Inner Class
     private class ConnectorTask extends Thread {
 
         /*---------------------------------------------------------------------------------------
-        --	FUNCTION:
+        --	FUNCTION:       run
         --
-        --	DATE:
+        --	DATE:           March 13, 2019
         --
         --	REVISIONS:	    (Date and Description)
         --
         --	DESIGNER:		Simon Wu, Viktor Alvar
         --
-        --	PROGRAMMER:
+        --	PROGRAMMER:     Simon Wu
         --
-        --	INTERFACE:
+        --	INTERFACE:      run()
         --
         --	RETURNS:		void.
         --
         --	NOTES:
-        --
+        --  This function is called when the connect thread is executed. Creates a socket
+        --  and sends a json object to the server. Sending only occurs when the location
+        --  listener generates a new location.
         ---------------------------------------------------------------------------------------*/
         @Override
         public void run() {
             try {
+                // Create socket
                 Socket socket = new Socket(hostName, Integer.parseInt(portNumber));
                 isConnected = true;
+
+                // Update ui
                 myActivity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -415,6 +476,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
+                // Poll
                 while (isConnected) {
                     if (canSend) {
                         canSend = false;
@@ -423,11 +485,14 @@ public class MainActivity extends AppCompatActivity {
                             DataOutputStream out = new DataOutputStream(outToServer);
                             double latitude = myLocation.getLatitude();
                             double longitude = myLocation.getLongitude();
+
+                            // Create json data
                             String data = new JSONObject().put("lat", latitude).put("lng", longitude)
                                     .put("name", deviceName).put("ip", getDeviceIpAddress())
                                     .put("time", getCurrentTime()).toString();
                             out.write((data + "\n").getBytes());
 
+                            // Update ui
                             myActivity.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -442,6 +507,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 socket.close();
             } catch  (IOException e) {
+                // Update ui
                 myActivity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
