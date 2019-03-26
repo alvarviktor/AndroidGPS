@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Map, GoogleApiWrapper, Marker} from 'google-maps-react';
+import {Map, GoogleApiWrapper, Marker, InfoWindow} from 'google-maps-react';
 
 const mapStyles = {
     width:  '100%',
@@ -10,8 +10,10 @@ export class MapContainer extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            coordinates: [],
-            seconds:     0
+            coordinates:       [],
+            seconds:           0,
+            showingInfoWindow: false,
+            activeMarker:      {},
         };
     };
 
@@ -42,13 +44,36 @@ export class MapContainer extends Component {
     renderMarkers = () => {
         return this.state.coordinates.map((e, i) => {
             return (
-              <Marker key={i}
-                      position={{
-                          lat: e.lat,
-                          lng: e.lng
-                      }}/>
+              <Marker
+                key={i}
+                onClick={this.onMarkerClick}
+                name={e.device_id}
+                device_ip={e.device_ip}
+                time={e.time}
+                lat= {e.lat}
+                lng ={e.lng}
+                position={{
+                    lat: e.lat,
+                    lng: e.lng
+                }}/>
             );
         });
+    };
+
+    onMarkerClick = (props, marker, e) =>
+      this.setState({
+            selectedPlace:     props,
+            activeMarker:      marker,
+            showingInfoWindow: true
+        });
+
+    onClose = props => {
+        if (this.state.showingInfoWindow) {
+            this.setState({
+                showingInfoWindow: false,
+                activeMarker:      null
+            });
+        }
     };
 
     render() {
@@ -62,6 +87,20 @@ export class MapContainer extends Component {
                 lng: -122.999835
             }}>
               {this.state.coordinates.length !== 0 ? this.renderMarkers() : ""}
+              <InfoWindow
+                marker={this.state.activeMarker}
+                visible={this.state.showingInfoWindow}
+                onClose={this.onClose}
+              >
+                  <div>
+                      <h4>{this.state.activeMarker ? this.state.activeMarker.name : ''}</h4>
+                      <h4>{this.state.activeMarker ? this.state.activeMarker.device_ip : ''}</h4>
+                      <h4>{this.state.activeMarker ? this.state.activeMarker.time : ''}</h4>
+                      <h4>{this.state.activeMarker ? "lat: " + this.state.activeMarker.lat : ''}</h4>
+                      <h4>{this.state.activeMarker ? "long: " + this.state.activeMarker.lng : ''}</h4>
+                      
+                  </div>
+              </InfoWindow>
           </Map>
         );
     }
