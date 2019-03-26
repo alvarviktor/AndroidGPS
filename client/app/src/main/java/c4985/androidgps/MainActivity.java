@@ -52,6 +52,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -62,6 +63,7 @@ import org.json.JSONObject;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.ConnectException;
 import java.net.Socket;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
@@ -224,6 +226,13 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.getLocationButton).setEnabled(true);
         setStatus(R.id.statusValue, R.string.statusValueDisconnected, R.color.statusRed);
         setStatus(R.id.gpsValue, R.string.gpsValueStopped, R.color.statusRed);
+
+        TextView latitudeVal = findViewById(R.id.latValue);
+        TextView longitudeVal = findViewById(R.id.lngValue);
+        TextView recentUpdate = findViewById(R.id.lastUpdateValue);
+        latitudeVal.setText(R.string.latPlaceholder);
+        longitudeVal.setText(R.string.lngPlaceholder);
+        recentUpdate.setText(R.string.lastUpdateValue);
     }
 
     /*---------------------------------------------------------------------------------------
@@ -463,7 +472,9 @@ public class MainActivity extends AppCompatActivity {
         public void run() {
             try {
                 // Create socket
+                Log.d("CONNECT:", "BEFORE");
                 Socket socket = new Socket(hostName, Integer.parseInt(portNumber));
+                Log.d("CONNECT:", "AFTER");
                 isConnected = true;
 
                 // Update ui
@@ -488,8 +499,8 @@ public class MainActivity extends AppCompatActivity {
 
                             // Create json data
                             String data = new JSONObject().put("lat", latitude).put("lng", longitude)
-                                    .put("name", deviceName).put("ip", getDeviceIpAddress())
-                                    .put("time", getCurrentTime()).toString();
+                                    .put("device_id", deviceName).put("time", getCurrentTime())
+                                    .put("device_ip", getDeviceIpAddress()).toString();
                             out.write((data + "\n").getBytes());
 
                             // Update ui
@@ -506,6 +517,16 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 socket.close();
+            } catch  (ConnectException e) {
+                // Update ui
+                myActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(myActivity, "Connect Failed", Toast.LENGTH_LONG).show();
+                    }
+                });
+                Log.d("CONNECT EXCEPTION:", "OCCURED");
+                e.printStackTrace();
             } catch  (IOException e) {
                 // Update ui
                 myActivity.runOnUiThread(new Runnable() {
