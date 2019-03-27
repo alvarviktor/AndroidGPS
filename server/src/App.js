@@ -10,6 +10,7 @@ class App extends Component {
         };
     };
 
+    // Login authentication
     onClickLogin = (id, pw) => {
         if (id == 'team4' && pw == 'team4isthebest')
             this.setState({isAuthenticated: true});
