@@ -52,6 +52,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.format.Formatter;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -341,10 +342,8 @@ public class MainActivity extends AppCompatActivity {
     --  is being executed. Returns the ip address as a String.
     ---------------------------------------------------------------------------------------*/
     public String getDeviceIpAddress() {
-        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService (WIFI_SERVICE);
-        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-        int ipAddress = wifiInfo.getIpAddress();
-        return String.valueOf(ipAddress);
+        WifiManager wm = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+        return Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
     }
 
     /*---------------------------------------------------------------------------------------
